@@ -54,11 +54,11 @@
 			<scope>test</scope>
 		</dependency>
 
-		<dependency>
-			<groupId>org.json</groupId>
-			<artifactId>json</artifactId>
-			<version>${spring.json.version}</version>
-		</dependency>
+<!--		<dependency>-->
+<!--			<groupId>org.json</groupId>-->
+<!--			<artifactId>json</artifactId>-->
+<!--			<version>${spring.json.version}</version>-->
+<!--		</dependency>-->
 
 
 		<dependency>
