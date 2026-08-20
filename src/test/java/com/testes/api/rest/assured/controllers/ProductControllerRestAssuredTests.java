@@ -83,11 +83,37 @@ public class ProductControllerRestAssuredTests {
                 .log().all() // log da requisição
             .when()
                 .get(endpoint)
-        .then()
-            .log().all()  // log da resposta
-            .statusCode(200)
-            .body("content.id", hasItems(1,2))
-            .body("content.name", hasItems("Microwave", "Refrigerator"))
+            .then()
+                .log().all()  // log da resposta
+                .statusCode(200)
+                .body("content.id", hasItems(1,2))
+                .body("content.name", hasItems("Microwave", "Refrigerator"))
         ;
     }
+
+
+    @Test //  <findAllPagedProductProjection> deve <RetornarProductDTO> [quando <ParamNameNaoEhEmpty>]
+    public void findAllPagedProductProjectionShouldReturnProductDTOWhenParamNameIsDoesNotEmpty() {
+
+        String endpoint = "/v1/products/page/projections?page=0&name={productName}&size=5&sort=id,ASC";
+
+        RestAssured
+            .given()
+                .filter((request, response, ctx) -> {
+                    System.out.println(">>> TESTE: Busca todos usuários páginados: GET " + endpoint);
+                    return ctx.next(request, response);
+                })
+                .log().all() // log da requisição
+            .when()
+                .get(endpoint, productName)
+            .then()
+                .log().all()  // log da resposta
+                .statusCode(200)
+                .body("content.id[0]", is(4))
+                .body("content.id[1]", is(13))
+                .body("content.name[0]", containsString(productName))
+                .body("content.name[1]", containsString(productName))
+        ;
+    }
+
 }
