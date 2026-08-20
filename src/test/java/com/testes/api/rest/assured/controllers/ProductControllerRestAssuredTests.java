@@ -67,4 +67,27 @@ public class ProductControllerRestAssuredTests {
                 .body("categories.name", hasItems("Home appliances"))
         ;
     }
+
+
+    @Test //  <findAllPaged> deve <RetornarProductDTO> [quando <ParamNameIsEmpty>]
+    public void findAllPagedShouldReturnProductDTOWhenParamNameIsEmpty(){
+
+        String endpoint = "/v1/products/page?page=0&size=5&sort=id,ASC";
+
+        RestAssured
+            .given()
+                .filter((request, response, ctx) -> {
+                    System.out.println(">>> TESTE: Busca todos usuários páginados: GET " + endpoint);
+                    return ctx.next(request, response);
+                })
+                .log().all() // log da requisição
+            .when()
+                .get(endpoint)
+        .then()
+            .log().all()  // log da resposta
+            .statusCode(200)
+            .body("content.id", hasItems(1,2))
+            .body("content.name", hasItems("Microwave", "Refrigerator"))
+        ;
+    }
 }
