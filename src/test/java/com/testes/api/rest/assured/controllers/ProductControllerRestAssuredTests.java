@@ -139,4 +139,27 @@ public class ProductControllerRestAssuredTests {
         ;
     }
 
+
+    @Test //  <findAllPaged> deve <ConterProductDTOComPrecoEhMaiorQue1000> [quando <ParamsPageEhZeroAndSizeEh5>]
+    public void findAllPagedShouldContainsProductDTOWithPriceGreaterThan1000WhenParamsPageIsZeroAndSizeIs5() {
+
+        String endpoint = "/v1/products/page?page=0&size=5&sort=id,ASC";
+
+        RestAssured
+            .given()
+                .filter((request, response, ctx) -> {
+                    System.out.println(">>> TESTE: Busca todos usuários páginados: GET " + endpoint);
+                    return ctx.next(request, response);
+                })
+                .log().all() // log da requisição
+            .when()
+                .get(endpoint)
+            .then()
+                .log().all()  // log da resposta
+                .statusCode(200)
+                .body("content.findAll { it.price > 1000 }.name"  // método do RestAssured que filtra todos que tem o price maior que 2000 e retorna apenas os name dos products filtrados
+                    , hasItems("Refrigerator", "Washing Machine"))
+        ;
+    }
+
 }
