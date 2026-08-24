@@ -210,4 +210,46 @@ public class ProductControllerRestAssuredTests {
         ;
     }
 
+
+
+    /* Inserção de produto retorna 422 e mensagem customizada com dados inválidos quando logado como admin e campo 'name' for inválido  */
+    @Test //  <insert> deve <RetornarStatusCode422> [quando <LogadoComoAdminENameInvalido>]
+    public void insertShouldReturnStatusCode422WhenLoggedInAsAdminAndInvalidName() throws Exception{
+
+        String endpoint = "/v1/products";
+        String token = TokenUtil.obtainAccessToken(adminUsername, adminPassword);
+
+        JSONObject newProduct = new JSONObject()
+            .put("name", "Des") // Campo 'name' deve ter entre 5 e 60 caracteres
+            .put("description", "High-end gaming desktop with RTX GPU")
+            .put("price", 8500.0)
+            .put("imgUrl", "https://example.com")
+            .put("categories", new JSONArray()
+                .put(new JSONObject()
+                    .put("id", 10))
+                .put(new JSONObject()
+                    .put("id", 8))
+            );
+
+        RestAssured
+            .given()
+            .filter((request, response, ctx) -> {
+                System.out.println(">>> TESTE: Insere novo produto retorna erro quando campo 'name' for inválido: POST " + endpoint);
+                return ctx.next(request, response);
+            })
+            .log().all() // log da requisição
+        .header("Content-type", MediaType.APPLICATION_JSON)
+        .header("Authorization", "Bearer " + token)
+        .body(newProduct.toString())
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .when()
+            .post(endpoint)
+        .then()
+            .log().all()  // log da resposta
+            .statusCode(422)
+            .body("errors.message[0]", equalTo("Campo 'name' deve ter entre 5 e 60 caracteres"))
+        ;
+    }
+
 }
