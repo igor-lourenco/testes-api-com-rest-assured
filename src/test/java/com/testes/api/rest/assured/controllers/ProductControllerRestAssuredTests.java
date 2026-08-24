@@ -1,11 +1,16 @@
 package com.testes.api.rest.assured.controllers;
 
 
+import com.testes.api.rest.assured.utils.TokenUtil;
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.MediaType;
 
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.port;
@@ -77,7 +82,7 @@ public class ProductControllerRestAssuredTests {
         RestAssured
             .given()
                 .filter((request, response, ctx) -> {
-                    System.out.println(">>> TESTE: Busca todos usuários páginados: GET " + endpoint);
+                    System.out.println(">>> TESTE: Busca todos produtos páginados: GET " + endpoint);
                     return ctx.next(request, response);
                 })
                 .log().all() // log da requisição
@@ -100,7 +105,7 @@ public class ProductControllerRestAssuredTests {
         RestAssured
             .given()
                 .filter((request, response, ctx) -> {
-                    System.out.println(">>> TESTE: Busca todos usuários páginados: GET " + endpoint);
+                    System.out.println(">>> TESTE: Busca todos produtos páginados: GET " + endpoint);
                     return ctx.next(request, response);
                 })
                 .log().all() // log da requisição
@@ -125,7 +130,7 @@ public class ProductControllerRestAssuredTests {
         RestAssured
             .given()
                 .filter((request, response, ctx) -> {
-                    System.out.println(">>> TESTE: Busca todos usuários: GET " + endpoint);
+                    System.out.println(">>> TESTE: Busca todos produtos: GET " + endpoint);
                     return ctx.next(request, response);
                 })
                 .log().all() // log da requisição
@@ -148,7 +153,7 @@ public class ProductControllerRestAssuredTests {
         RestAssured
             .given()
                 .filter((request, response, ctx) -> {
-                    System.out.println(">>> TESTE: Busca todos usuários páginados: GET " + endpoint);
+                    System.out.println(">>> TESTE: Busca todos produtos páginados: GET " + endpoint);
                     return ctx.next(request, response);
                 })
                 .log().all() // log da requisição
@@ -159,6 +164,49 @@ public class ProductControllerRestAssuredTests {
                 .statusCode(200)
                 .body("content.findAll { it.price > 1000 }.name"  // método do RestAssured que filtra todos que tem o price maior que 2000 e retorna apenas os name dos products filtrados
                     , hasItems("Refrigerator", "Washing Machine"))
+        ;
+    }
+
+
+
+    /* Inserção de produto quando logado como admin*/
+    @Test //  <insert> deve <RetornarProductCriado> [quando <LogadoComoAdmin>]
+    public void insertShouldReturnProductCreatedWhenLoggedInAsAdmin() throws Exception{
+
+        String endpoint = "/v1/products";
+        String token = TokenUtil.obtainAccessToken(adminUsername, adminPassword);
+
+        JSONObject newProduct = new JSONObject()
+            .put("name", "Desktop PC Pro")
+            .put("description", "High-end gaming desktop with RTX GPU")
+            .put("price", 8500.0)
+            .put("imgUrl", "https://example.com")
+            .put("categories", new JSONArray()
+                .put(new JSONObject()
+                    .put("id", 10))
+                .put(new JSONObject()
+                    .put("id", 8))
+            );
+
+        RestAssured
+            .given()
+            .filter((request, response, ctx) -> {
+                System.out.println(">>> TESTE: Insere novo produto: POST " + endpoint);
+                return ctx.next(request, response);
+            })
+            .log().all() // log da requisição
+        .header("Content-type", MediaType.APPLICATION_JSON)
+        .header("Authorization", "Bearer " + token)
+        .body(newProduct.toString())
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .when()
+            .post(endpoint)
+        .then()
+            .log().all()  // log da resposta
+            .statusCode(201)
+            .body("name", equalTo(newProduct.getString("name")))
+            .body("categories.id", hasItems(10, 8))
         ;
     }
 
