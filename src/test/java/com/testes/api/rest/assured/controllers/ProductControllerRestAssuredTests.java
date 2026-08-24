@@ -252,4 +252,45 @@ public class ProductControllerRestAssuredTests {
         ;
     }
 
+
+
+    /* Inserção de produto retorna 422 e mensagem customizada com dados inválidos quando logado como admin e campo 'description' for inválido  */
+    @Test //  <insert> deve <RetornarStatusCode422> [quando <LogadoComoAdminEDescriptionInvalido>]
+    public void insertShouldReturnStatusCode422WhenLoggedInAsAdminAndInvalidDescription() throws Exception{
+
+        String endpoint = "/v1/products";
+        String token = TokenUtil.obtainAccessToken(adminUsername, adminPassword);
+
+        JSONObject newProduct = new JSONObject()
+            .put("name", "Desktop PC Pro")
+            .put("description", "") // Campo 'description' obrigatório
+            .put("price", 8500.0)
+            .put("imgUrl", "https://example.com")
+            .put("categories", new JSONArray()
+                .put(new JSONObject()
+                    .put("id", 10))
+                .put(new JSONObject()
+                    .put("id", 8))
+            );
+
+        RestAssured
+            .given()
+            .filter((request, response, ctx) -> {
+                System.out.println(">>> TESTE: Insere novo produto retorna erro quando campo 'description' for inválido: POST " + endpoint);
+                return ctx.next(request, response);
+            })
+        .log().all() // log da requisição
+        .header("Content-type", MediaType.APPLICATION_JSON)
+        .header("Authorization", "Bearer " + token)
+        .body(newProduct.toString())
+        .contentType(ContentType.JSON)
+        .accept(ContentType.JSON)
+        .when()
+            .post(endpoint)
+        .then()
+            .log().all()  // log da resposta
+            .statusCode(422)
+            .body("errors.message[0]", equalTo("Campo 'description' obrigatório"))
+        ;
+    }
 }
